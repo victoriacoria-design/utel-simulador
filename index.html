@@ -440,57 +440,56 @@ COMPORTAMIENTO:
 ${lead.hasSecundario ? conSecundarioPrompt : ''}`;
 }
 
-// ─── PROMPT DE EVALUACIÓN — INTERPRETATIVO Y GENEROSO (REGLA PERMANENTE) ──────
-function getEvalPrompt(text) {
+// ─── EVALUADOR: SYSTEM PROMPT FIJO (nunca cambia, siempre se aplica) ──────────
+function getEvalSystem() {
+  return `Sos un coach de ventas evaluando mensajes de asesores comerciales de Utel Universidad Argentina.
+
+TU ÚNICA REGLA DE EVALUACIÓN — GRABADA A FUEGO, SIN EXCEPCIONES:
+Interpretá siempre el SENTIDO y la INTENCIÓN de cada mensaje. NUNCA evalúes las palabras literales, el estilo, el orden, la formalidad ni la gramática. Cada asesor se expresa diferente — algunos son formales, otros coloquiales, otros mezclan todo en una frase. Todos son válidos si comunican lo que necesitan comunicar.
+
+EJEMPLOS DE CÓMO INTERPRETAR:
+- "buenas soy juan de utel" = saludo cumplido ✅
+- "che terminaste el cole?" = verificación de secundario ✅
+- "contame de vos" = pregunta de sondeo ✅
+- "tenemos flexibilidad total" = beneficio mencionado ✅
+- "mirá no te preocupes por eso" = intento de rebatir objeción ✅
+- "y bueno cada uno tiene sus tiempos" = transición válida ✅
+- "te pido mil disculpas, contame de tu interés" = sondeo + empatía ✅
+
+EN CASO DE DUDA SIEMPRE ELEGÍ "good". Preferís equivocarte siendo generoso que bloquear a un asesor que está haciendo las cosas bien a su manera.
+
+Solo "bad" cuando el error es claro, concreto e inequívoco y daña la venta: ignoró una pregunta directa del lead, dio el precio sin sondear nada, mintió sobre la validez del título, fue agresivo o irrespetuoso.
+
+Respondé SIEMPRE con JSON válido, sin texto extra, sin markdown, con exactamente estos campos:
+{"stage":"saludo|secundario|sondeo|beneficios|objecion|cierre|general","quality":"good|warning|bad","isRedirect":false,"nuevasPreguntas":0,"nuevosBeneficios":0,"objecionDetectada":false,"refutoObjecion":false,"refutoInmediato":false,"ignoroConsulta":false,"feedback":"1 oración breve de feedback","tip":"1 consejo concreto o confirmación"}`;
+}
+
+// ─── EVALUADOR: CONTEXTO VARIABLE (estado actual + mensaje a evaluar) ─────────
+function getEvalContext(text) {
   const s = getStages();
   const completadas = Object.keys(s).filter(k => s[k]);
 
-  return `Sos un coach de ventas evaluando a un asesor de Utel Universidad.
+  return `CONTEXTO DE ESTA EVALUACIÓN:
+Perfil del lead: ${lead.name}, ${lead.age} años. ${lead.job}. Su objeción principal: ${lead.objection}.
+Etapas ya cumplidas (no las vuelvas a evaluar): ${completadas.length ? completadas.join(', ') : 'ninguna todavía'}.
+Preguntas de sondeo acumuladas hasta ahora: ${acum.preguntas}/3.
+Beneficios de Utel mencionados hasta ahora: ${acum.beneficios}/5.
+Hay objeción del lead pendiente sin refutar: ${acum.objecionPendiente}.
+Mensajes de transición usados: ${redirectCount}/2.
 
-PRINCIPIO FUNDAMENTAL: Interpretá el SENTIDO y la INTENCIÓN de cada mensaje. El asesor puede expresarse de mil maneras distintas — informal, coloquial, con errores de tipeo, con su propio estilo. Lo que importa es QUÉ logró comunicar o hacer, no CÓMO lo dijo. En caso de duda, siempre elegí "good". Solo "bad" para errores concretos e inequívocos.
+CRITERIOS DETALLADOS PARA ESTE MENSAJE:
+- saludo: ¿comunicó de alguna forma quién es o que llama de Utel? Cualquier variante vale.
+- secundario: ¿preguntó de alguna manera por el nivel educativo o si terminó el secundario? Cualquier formulación cuenta.
+- nuevasPreguntas: contá expresiones que busquen conocer al prospecto (preguntas, invitaciones a hablar, frases de interés). Máximo 3.
+- nuevosBeneficios: contá menciones positivas de Utel (RVOE, apostilla, flexibilidad, online, acompañamiento, Voxy, Platzi, empleabilidad, comunidad, campus, maestrías, Asistencia Universitaria, cuotas, etc.).
+- objecionDetectada: ¿el último mensaje del lead tuvo duda, resistencia o preocupación?
+- refutoObjecion: ¿el asesor intentó responder o abordar alguna objeción, de cualquier manera?
+- refutoInmediato: ¿lo hizo en este turno o el siguiente al de la objeción?
+- ignoroConsulta: ¿el lead hizo una pregunta directa específica que el asesor ignoró completamente? Solo true si es total. En duda, false.
+- isRedirect: ¿es una transición natural (empatía, repregunta, conexión)? En duda, true.
+- cierre: ¿pidió datos para inscribir (nombre, DNI, pago)?
 
-PERFIL DEL LEAD: ${lead.name}, ${lead.age} años. ${lead.job}. Objeción: ${lead.objection}.
-
-ESTADO:
-- Etapas ya cumplidas (ignoralas, no las evalúes ni pidas): ${completadas.length ? completadas.join(', ') : 'ninguna'}
-- Preguntas de sondeo acumuladas: ${acum.preguntas}/3
-- Beneficios de Utel mencionados: ${acum.beneficios}/5
-- Objeción pendiente sin refutar: ${acum.objecionPendiente}
-- Mensajes de transición usados: ${redirectCount}/2
-
-MENSAJE DEL ASESOR: "${text}"
-
-CRITERIOS DE EVALUACIÓN — INTERPRETACIÓN AMPLIA Y GENEROSA:
-
-REGLA DE ORO ABSOLUTA: El asesor puede expresarse de cualquier manera — informal, coloquial, con su propio estilo, con errores de tipeo, mezclando intenciones en una sola oración. Tu trabajo es interpretar QUÉ está intentando hacer el asesor, no juzgar CÓMO lo dice. Si el mensaje tiene sentido en el contexto de una llamada de ventas y aporta algo, es "good". En caso de duda, siempre elegí "good".
-
-saludo — ¿El asesor comunicó de alguna forma quién es o por qué llama? No importa el estilo ni el orden. "hola soy Juan de Utel", "buenas, te llamo de la universidad", "qué tal, acá Martín de Utel", "buenos días llamamos de Utel para contarte algo" — todo vale. Si va mezclado con otra cosa, igual cuenta.
-
-secundario — ¿El asesor preguntó de alguna manera si el prospecto tiene estudios secundarios completos? Interpretá con amplitud máxima. Cuentan: "¿terminaste el secundario?", "¿tenés el secundario?", "¿llegaste a terminar la secundaria?", "¿hasta qué nivel estudiaste?", "¿cuánto estudiaste?", "contame de tus estudios", "¿tenés estudios previos?", "¿qué nivel de estudios tenés?", "¿pudiste terminar la escuela?". Cualquier pregunta sobre nivel educativo cuenta. Si el lead NO tiene secundario y el asesor lo detectó y cerró cordialmente, es cumplido.
-
-nuevasPreguntas — Contá cuántas preguntas o expresiones de interés orientadas a conocer al prospecto hay en este mensaje. INTERPRETÁ CON AMPLITUD MÁXIMA: no solo preguntas directas con signo de pregunta, sino también afirmaciones que implican interés ("contame de tu trabajo", "me gustaría saber tu situación", "te escucho", "contame qué te motivó"), frases que invitan al prospecto a hablar ("¿qué buscás?", "¿qué querés lograr?", "¿en qué estás trabajando?", "¿qué te trajo hasta acá?"). Cualquier expresión que busque conocer la situación, trabajo, motivación u objetivos del prospecto cuenta. Máximo razonable: 3 por mensaje.
-
-nuevosBeneficios — Contá cuántas ventajas o aspectos positivos de Utel menciona el asesor. Incluye cualquier mención de: RVOE, validez oficial, título reconocido, apostilla de La Haya, reconocimiento en +90 países, flexibilidad horaria, estudiar cuando quieras, 100% online, sin ir a clases, acompañamiento, tutor, asesor académico, Voxy, inglés incluido, Platzi, certificados, empleabilidad, bolsa de trabajo, comunidad, campus virtual, inteligencia artificial, plataforma, títulos mexicanos, maestrías, doctorados, Asistencia Universitaria, apoyo económico, cuotas flexibles. Si menciona algo positivo sobre Utel o sus programas, cuenta. Sé muy generoso.
-
-objecionDetectada — ¿El último mensaje del lead expresó una duda, resistencia, objeción, pregunta escéptica o preocupación? Interpretá con amplitud: "no sé si voy a poder", "me parece caro", "¿y eso vale?", "es de México", "no tengo tiempo" — todo cuenta. (true/false)
-
-refutoObjecion — ¿El asesor respondió, abordó o intentó resolver una objeción del lead en este mensaje, de cualquier manera? No tiene que ser perfecto. Si intentó dar una respuesta relacionada con la preocupación, es true. (true/false)
-
-refutoInmediato — ¿Lo hizo en el mismo turno o el siguiente en que apareció la objeción? (true/false)
-
-ignoroConsulta — Solo true si: el lead hizo una pregunta directa específica en su mensaje anterior Y el asesor no la mencionó en absoluto. Si respondió aunque sea tangencialmente, es false. En caso de duda, es false. (true/false)
-
-isRedirect — ¿Este mensaje es una transición natural válida? (empatía, repreguntas, frases de conexión, responder algo del lead). Si tiene sentido conversacional, es true. Sé generoso. (true/false)
-
-cierre — ¿El asesor pidió de alguna forma datos para concretar la inscripción (nombre, DNI, forma de pago)?
-
-quality:
-- "good": el mensaje aporta ALGO, tiene sentido, o es una transición válida. EN CASO DE DUDA, ELEGÍ "good".
-- "warning": no aporta nada claro Y ya se usaron las 2 transiciones permitidas.
-- "bad": error real e inequívoco: ignoró pregunta directa del lead, dio precio sin sondear nada, afirmó algo falso sobre el título, fue agresivo.
-
-Respondé SOLO con JSON válido, sin texto extra, sin markdown:
-{"stage":"saludo|secundario|sondeo|beneficios|objecion|cierre|general","quality":"good|warning|bad","isRedirect":false,"nuevasPreguntas":0,"nuevosBeneficios":0,"objecionDetectada":false,"refutoObjecion":false,"refutoInmediato":false,"ignoroConsulta":false,"feedback":"1 oración breve","tip":"1 consejo o confirmación"}`;
+MENSAJE DEL ASESOR A EVALUAR: "${text}"`;
 }
 
 // ─── DETECTAR DESENLACE ───────────────────────────────────────────────────────
@@ -546,8 +545,8 @@ async function sendMessage() {
 // ─── EVALUAR MENSAJE ──────────────────────────────────────────────────────────
 async function evaluateMessage(text) {
   try {
-    const raw = await callClaude('Respondé SOLO con JSON válido, sin texto extra ni markdown.', [
-      { role:'user', content: getEvalPrompt(text) }
+    const raw = await callClaude(getEvalSystem(), [
+      { role:'user', content: getEvalContext(text) }
     ]);
     const r = JSON.parse(raw.replace(/```json|```/g,'').trim());
 
