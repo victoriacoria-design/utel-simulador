@@ -732,6 +732,7 @@ async function sendMailReport(conclusion, outcome, pct, s) {
   const templateParams = {
     asesor_nombre: asesorNombre,
     asesor_mail:   asesorMail,
+    copia_admin:   'victoria.coria@utel.edu.mx',
     fecha,
     lead:          lead.name + ' — ' + lead.career,
     resultado:     resultLabel,
