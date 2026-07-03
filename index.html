@@ -109,7 +109,7 @@ body{font-family:Arial,sans-serif;background:#f0f4f0;display:flex;justify-conten
 </div>
 <script>
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
-var PROXY = 'https://script.google.com/macros/s/AKfycbzjsejFmn_7P2co4TgTw_qkVa6pPADpy7Sj2zbfFpYVVxEXheLXi9kriG5FVmPZ9AEIqg/exec';
+var PROXY = 'https://script.google.com/macros/s/AKfycbxgOQ80TgDjQdhpCUoJFtAv9uijMeAmoQRTtNU5PtrrGJgo_cdTvjYcdEJg1H1g6KHUsQ/exec';
 
 // ─── PERFILES ─────────────────────────────────────────────────────────────────
 var LEADS = [
@@ -248,9 +248,10 @@ function callAI(system, messages, maxT) {
   var gm = messages.map(function(m) {
     return { role: m.role === 'assistant' ? 'model' : 'user', parts: [{text: m.content}] };
   });
+  // Usamos text/plain para evitar preflight CORS en Apps Script
   return fetch(PROXY, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify({type:'gemini', system:system, messages:gm, maxTokens:maxT||1000})
   }).then(function(r) { return r.json(); }).then(function(d) {
     if (d.error) throw new Error(d.error);
@@ -440,12 +441,13 @@ function saveToSheets(outcome, resultLabel, pct, s, conclusion, ms) {
     escucha_fallas: ac.escFallas,
     conclusion: conclusion || ''
   };
+  // no-cors para Sheets: no necesitamos leer la respuesta
   fetch(PROXY, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(payload)
-  }).then(function(r) { return r.json(); }).then(function(d) {
-    if (ms) { ms.className = 'ms sent'; ms.textContent = d.status === 'ok' ? '✅ Resultado registrado en Google Sheets' : '⚠️ Error al registrar: ' + (d.error || ''); }
+  }).then(function() {
+    if (ms) { ms.className = 'ms sent'; ms.textContent = '✅ Resultado registrado en Google Sheets'; }
   }).catch(function(err) {
     console.error('Sheets error:', err);
     if (ms) { ms.className = 'ms'; ms.textContent = '⚠️ No se pudo registrar en Sheets.'; }
