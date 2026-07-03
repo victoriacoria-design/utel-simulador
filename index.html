@@ -5,662 +5,462 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simulador de Ventas · Utel Universidad</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #f0f4f0; display: flex; justify-content: center; min-height: 100vh; }
-#app { display: flex; flex-direction: column; height: 100vh; width: 100%; max-width: 640px; background: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
-
-/* REGISTRO */
-#register-panel { display: flex; flex-direction: column; justify-content: center; align-items: center; flex: 1; padding: 32px 24px; gap: 20px; }
-.reg-logo { font-size: 48px; }
-.reg-title { font-size: 20px; font-weight: 700; color: #1e5c2a; text-align: center; }
-.reg-subtitle { font-size: 13px; color: #666; text-align: center; line-height: 1.5; }
-.reg-form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-.reg-input { width: 100%; padding: 11px 14px; border: 1.5px solid #d0d0d0; border-radius: 10px; font-size: 14px; outline: none; font-family: inherit; }
-.reg-input:focus { border-color: #2d7a3a; }
-.reg-btn { width: 100%; padding: 13px; background: #2d7a3a; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
-.reg-btn:hover { background: #246130; }
-.reg-note { font-size: 11px; color: #999; text-align: center; }
-
-/* GAME SCREENS - ocultas al inicio */
-#header { background: #1e5c2a; color: #fff; padding: 12px 16px; display: none; align-items: center; gap: 12px; flex-shrink: 0; }
-#score-bar { background: #f0f7f1; border-bottom: 1px solid #c8e6c9; padding: 7px 16px; display: none; gap: 10px; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
-#chat { flex: 1; overflow-y: auto; padding: 14px 16px; display: none; flex-direction: column; gap: 10px; }
-#input-area { padding: 10px 12px; border-top: 1px solid #e0e0e0; display: none; gap: 8px; flex-shrink: 0; align-items: flex-end; background: #fff; }
-#fin-bar { padding: 6px 12px; border-top: 1px solid #e0e0e0; background: #fff; display: none; justify-content: center; }
-#result-panel { display: none; flex-direction: column; align-items: center; padding: 24px 20px; text-align: center; gap: 12px; overflow-y: auto; }
-
-/* HEADER */
-#lead-avatar { width: 42px; height: 42px; border-radius: 50%; background: #2d7a3a; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-#lead-info h2 { font-size: 14px; font-weight: 600; }
-#lead-info p { font-size: 11px; opacity: 0.75; margin-top: 2px; }
-#stage-badge { margin-left: auto; font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; background: rgba(255,255,255,0.18); white-space: nowrap; flex-shrink: 0; }
-
-/* SCORE BAR */
-.score-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #3b6d11; font-weight: 500; }
-.score-dot { width: 9px; height: 9px; border-radius: 50%; background: #ccc; transition: background 0.3s; flex-shrink: 0; }
-.score-dot.done { background: #2d7a3a; }
-.score-prog { font-size: 10px; opacity: 0.65; }
-
-/* CHAT */
-.msg { display: flex; gap: 8px; align-items: flex-end; }
-.msg.lead { flex-direction: row; }
-.msg.asesor { flex-direction: row-reverse; }
-.bubble { max-width: 78%; padding: 10px 13px; border-radius: 16px; font-size: 13px; line-height: 1.5; }
-.msg.lead .bubble { background: #f1f1f1; border-radius: 16px 16px 16px 4px; color: #1a1a1a; }
-.msg.asesor .bubble { background: #2d7a3a; color: #fff; border-radius: 16px 16px 4px 16px; }
-.avatar-sm { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-.avatar-lead { background: #e8f5e9; }
-.avatar-asesor { background: #1e5c2a; color: white; font-size: 10px; font-weight: 700; }
-.feedback-card { border-left: 3px solid #f39c12; border-radius: 8px; padding: 9px 13px; font-size: 12px; line-height: 1.5; margin: 0 6px; background: #fff8e1; color: #7d5a00; }
-.feedback-card.good { background: #f0f7f1; border-left-color: #2d7a3a; color: #1e5c2a; }
-.feedback-card.bad { background: #fdecea; border-left-color: #c0392b; color: #7b1a1a; }
-.typing { display: flex; gap: 4px; padding: 12px 14px; background: #f1f1f1; border-radius: 16px 16px 16px 4px; width: fit-content; }
-.typing span { width: 6px; height: 6px; border-radius: 50%; background: #aaa; animation: bounce 1.2s infinite; display: block; }
-.typing span:nth-child(2) { animation-delay: 0.2s; }
-.typing span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes bounce { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)} }
-
-/* INPUT */
-#msg-input { flex: 1; padding: 9px 13px; border: 1px solid #bdbdbd; border-radius: 20px; font-size: 14px; background: #fff; color: #1a1a1a; resize: none; font-family: inherit; outline: none; max-height: 80px; }
-#msg-input:focus { border-color: #2d7a3a; }
-#send-btn { width: 40px; height: 40px; border-radius: 50%; background: #2d7a3a; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-#send-btn:hover { background: #246130; }
-#send-btn:disabled { background: #aaa; cursor: default; }
-#hint-btn { font-size: 11px; color: #666; background: none; border: 1px solid #ddd; border-radius: 12px; padding: 5px 10px; cursor: pointer; flex-shrink: 0; white-space: nowrap; }
-#hint-btn:hover { background: #f5f5f5; }
-#fin-sim-btn { font-size: 11px; color: #c0392b; background: none; border: 1px solid #f5c6cb; border-radius: 12px; padding: 5px 16px; cursor: pointer; }
-#fin-sim-btn:hover { background: #fdecea; }
-
-/* RESULTADO */
-.result-score { font-size: 52px; font-weight: 700; color: #2d7a3a; }
-.result-label { font-size: 14px; color: #444; line-height: 1.5; max-width: 400px; }
-.checklist { text-align: left; width: 100%; background: #f5f5f5; border-radius: 12px; padding: 12px 14px; }
-.check-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; padding: 7px 0; border-bottom: 1px solid #e0e0e0; }
-.check-item:last-child { border-bottom: none; }
-.check-detail { font-size: 11px; color: #888; margin-top: 2px; }
-.conclusion-box { width: 100%; background: #f0f7f1; border: 1px solid #c8e6c9; border-radius: 12px; padding: 14px; text-align: left; font-size: 13px; line-height: 1.6; }
-.conclusion-title { font-size: 12px; font-weight: 700; color: #1e5c2a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-.outcome-tag { font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 20px; }
-.outcome-inscrito  { background: #eaf3de; color: #1e5c2a; }
-.outcome-no-amable { background: #fff3cd; color: #7d5a00; }
-.outcome-corto     { background: #fdecea; color: #7b1a1a; }
-.outcome-insulto   { background: #f8d7da; color: #5c1010; }
-.outcome-sin-sec   { background: #e8f4fd; color: #1a5276; }
-#new-game-btn { background: #2d7a3a; color: white; border: none; border-radius: 8px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; }
-#new-game-btn:hover { background: #246130; }
-.mail-status { font-size: 11px; color: #888; }
-.mail-status.sending { color: #f39c12; }
-.mail-status.sent { color: #2d7a3a; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f4f0;display:flex;justify-content:center;min-height:100vh}
+#app{display:flex;flex-direction:column;height:100vh;width:100%;max-width:640px;background:#fff;box-shadow:0 0 20px rgba(0,0,0,.08)}
+#reg{display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1;padding:32px 24px;gap:20px}
+.rl{font-size:48px}.rt{font-size:20px;font-weight:700;color:#1e5c2a;text-align:center}
+.rs{font-size:13px;color:#666;text-align:center;line-height:1.5}.rf{width:100%;display:flex;flex-direction:column;gap:12px}
+.ri{width:100%;padding:11px 14px;border:1.5px solid #d0d0d0;border-radius:10px;font-size:14px;outline:none;font-family:inherit}
+.ri:focus{border-color:#2d7a3a}
+#rbtn{width:100%;padding:13px;background:#2d7a3a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+#rbtn:hover{background:#246130}.rn{font-size:11px;color:#999;text-align:center}
+#hdr{background:#1e5c2a;color:#fff;padding:12px 16px;display:none;align-items:center;gap:12px;flex-shrink:0}
+#lav{width:42px;height:42px;border-radius:50%;background:#2d7a3a;border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+#lnm{font-size:14px;font-weight:600}#ldc{font-size:11px;opacity:.75;margin-top:2px}
+#stg{margin-left:auto;font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.18);white-space:nowrap;flex-shrink:0}
+#sbar{background:#f0f7f1;border-bottom:1px solid #c8e6c9;padding:7px 16px;display:none;gap:10px;flex-shrink:0;flex-wrap:wrap;align-items:center}
+.si{display:flex;align-items:center;gap:5px;font-size:11px;color:#3b6d11;font-weight:500}
+.sd{width:9px;height:9px;border-radius:50%;background:#ccc;transition:background .3s;flex-shrink:0}.sd.done{background:#2d7a3a}
+.sp{font-size:10px;opacity:.65}
+#chat{flex:1;overflow-y:auto;padding:14px 16px;display:none;flex-direction:column;gap:10px}
+.msg{display:flex;gap:8px;align-items:flex-end}.msg.lead{flex-direction:row}.msg.asesor{flex-direction:row-reverse}
+.bbl{max-width:78%;padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.5}
+.msg.lead .bbl{background:#f1f1f1;border-radius:16px 16px 16px 4px;color:#1a1a1a}
+.msg.asesor .bbl{background:#2d7a3a;color:#fff;border-radius:16px 16px 4px 16px}
+.av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.av.lead{background:#e8f5e9}.av.asesor{background:#1e5c2a;color:#fff;font-size:10px;font-weight:700}
+.fc{border-left:3px solid #f39c12;border-radius:8px;padding:9px 13px;font-size:12px;line-height:1.5;margin:0 6px;background:#fff8e1;color:#7d5a00}
+.fc.good{background:#f0f7f1;border-left-color:#2d7a3a;color:#1e5c2a}.fc.bad{background:#fdecea;border-left-color:#c0392b;color:#7b1a1a}
+.typ{display:flex;gap:4px;padding:12px 14px;background:#f1f1f1;border-radius:16px 16px 16px 4px;width:fit-content}
+.typ span{width:6px;height:6px;border-radius:50%;background:#aaa;animation:bnc 1.2s infinite;display:block}
+.typ span:nth-child(2){animation-delay:.2s}.typ span:nth-child(3){animation-delay:.4s}
+@keyframes bnc{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#inp{padding:10px 12px;border-top:1px solid #e0e0e0;display:none;gap:8px;flex-shrink:0;align-items:flex-end;background:#fff}
+#txt{flex:1;padding:9px 13px;border:1px solid #bdbdbd;border-radius:20px;font-size:14px;background:#fff;color:#1a1a1a;resize:none;font-family:inherit;outline:none;max-height:80px}
+#txt:focus{border-color:#2d7a3a}
+#sbtn{width:40px;height:40px;border-radius:50%;background:#2d7a3a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#sbtn:hover{background:#246130}#sbtn:disabled{background:#aaa;cursor:default}
+#hbtn{font-size:11px;color:#666;background:none;border:1px solid #ddd;border-radius:12px;padding:5px 10px;cursor:pointer;flex-shrink:0;white-space:nowrap}
+#hbtn:hover{background:#f5f5f5}
+#fbar{padding:6px 12px;border-top:1px solid #e0e0e0;background:#fff;display:none;justify-content:center}
+#fbtn{font-size:11px;color:#c0392b;background:none;border:1px solid #f5c6cb;border-radius:12px;padding:5px 16px;cursor:pointer}
+#fbtn:hover{background:#fdecea}
+#res{display:none;flex-direction:column;align-items:center;padding:24px 20px;text-align:center;gap:12px;overflow-y:auto}
+.rsc{font-size:52px;font-weight:700;color:#2d7a3a}.rlb{font-size:14px;color:#444;line-height:1.5;max-width:400px}
+.ck{text-align:left;width:100%;background:#f5f5f5;border-radius:12px;padding:12px 14px}
+.ci{display:flex;gap:10px;align-items:flex-start;font-size:13px;padding:7px 0;border-bottom:1px solid #e0e0e0}
+.ci:last-child{border-bottom:none}.cd{font-size:11px;color:#888;margin-top:2px}
+.cb{width:100%;background:#f0f7f1;border:1px solid #c8e6c9;border-radius:12px;padding:14px;text-align:left;font-size:13px;line-height:1.6}
+.ct{font-size:12px;font-weight:700;color:#1e5c2a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.ot{font-size:12px;font-weight:600;padding:6px 14px;border-radius:20px}
+.oi{background:#eaf3de;color:#1e5c2a}.ona{background:#fff3cd;color:#7d5a00}
+.oc{background:#fdecea;color:#7b1a1a}.oin{background:#f8d7da;color:#5c1010}.os{background:#e8f4fd;color:#1a5276}
+#ngbtn{background:#2d7a3a;color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer}
+#ngbtn:hover{background:#246130}
+.ms{font-size:11px;color:#888}.ms.sending{color:#f39c12}.ms.sent{color:#2d7a3a}
 </style>
 </head>
 <body>
 <div id="app">
-
-  <!-- REGISTRO -->
-  <div id="register-panel">
-    <div class="reg-logo">🎓</div>
-    <div class="reg-title">Simulador de Ventas<br>Utel Universidad</div>
-    <div class="reg-subtitle">Ingresá tus datos para comenzar.<br>Al finalizar tu resultado quedará registrado.</div>
-    <div class="reg-form">
-      <input class="reg-input" id="reg-nombre" type="text" placeholder="Tu nombre completo" maxlength="60" />
-      <input class="reg-input" id="reg-mail" type="email" placeholder="Tu mail corporativo" maxlength="80" />
-      <button class="reg-btn" id="reg-btn">Comenzar simulación →</button>
+  <div id="reg">
+    <div class="rl">🎓</div>
+    <div class="rt">Simulador de Ventas<br>Utel Universidad</div>
+    <div class="rs">Ingresá tus datos para comenzar.<br>Al finalizar tu resultado quedará registrado.</div>
+    <div class="rf">
+      <input class="ri" id="rnombre" type="text" placeholder="Tu nombre completo" maxlength="60">
+      <input class="ri" id="rmail" type="email" placeholder="Tu mail corporativo" maxlength="80">
+      <button id="rbtn">Comenzar simulación →</button>
     </div>
-    <div class="reg-note">S4 Learning · Material interno de capacitación</div>
+    <div class="rn">S4 Learning · Material interno de capacitación</div>
   </div>
-
-  <!-- HEADER -->
-  <div id="header">
-    <div id="lead-avatar">👤</div>
-    <div id="lead-info">
-      <h2 id="lead-name">Cargando...</h2>
-      <p id="lead-desc"></p>
-    </div>
-    <div id="stage-badge">Iniciando...</div>
+  <div id="hdr">
+    <div id="lav">👤</div>
+    <div><div id="lnm">Cargando...</div><div id="ldc"></div></div>
+    <div id="stg">Iniciando...</div>
   </div>
-
-  <!-- SCORE BAR -->
-  <div id="score-bar">
-    <div class="score-item"><div class="score-dot" id="dot-saludo"></div>Saludo</div>
-    <div class="score-item"><div class="score-dot" id="dot-secundario"></div>Secundario</div>
-    <div class="score-item"><div class="score-dot" id="dot-sondeo"></div>Sondeo <span class="score-prog" id="prog-sondeo">0/3</span></div>
-    <div class="score-item"><div class="score-dot" id="dot-beneficios"></div>Beneficios <span class="score-prog" id="prog-beneficios">0/5</span></div>
-    <div class="score-item"><div class="score-dot" id="dot-objecion"></div>Objeción</div>
-    <div class="score-item"><div class="score-dot" id="dot-cierre"></div>Cierre</div>
+  <div id="sbar">
+    <div class="si"><div class="sd" id="d-saludo"></div>Saludo</div>
+    <div class="si"><div class="sd" id="d-secundario"></div>Secundario</div>
+    <div class="si"><div class="sd" id="d-sondeo"></div>Sondeo <span class="sp" id="p-sondeo">0/3</span></div>
+    <div class="si"><div class="sd" id="d-beneficios"></div>Beneficios <span class="sp" id="p-benef">0/5</span></div>
+    <div class="si"><div class="sd" id="d-objecion"></div>Objeción</div>
+    <div class="si"><div class="sd" id="d-cierre"></div>Cierre</div>
   </div>
-
-  <!-- CHAT -->
   <div id="chat"></div>
-
-  <!-- RESULTADO -->
-  <div id="result-panel">
-    <div class="result-score" id="final-score"></div>
-    <div id="outcome-badge"></div>
-    <div class="result-label" id="final-label"></div>
-    <div class="checklist" id="final-checklist"></div>
-    <div class="conclusion-box" id="conclusion-box" style="display:none">
-      <div class="conclusion-title">📋 Conclusión del coach</div>
-      <div id="conclusion-text">Generando análisis...</div>
+  <div id="res">
+    <div class="rsc" id="fscore"></div>
+    <div id="obadge"></div>
+    <div class="rlb" id="flabel"></div>
+    <div class="ck" id="fchecklist"></div>
+    <div class="cb" id="cbox" style="display:none">
+      <div class="ct">📋 Conclusión del coach</div>
+      <div id="ctext">Generando análisis...</div>
     </div>
-    <div class="mail-status" id="mail-status"></div>
-    <button id="new-game-btn">↺ Nuevo prospecto</button>
+    <div class="ms" id="mstatus"></div>
+    <button id="ngbtn">↺ Nuevo prospecto</button>
   </div>
-
-  <!-- INPUT -->
-  <div id="input-area">
-    <button id="hint-btn">💡 Pista</button>
-    <textarea id="msg-input" placeholder="Escribí tu mensaje como asesor..." rows="1"></textarea>
-    <button id="send-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
-    </button>
+  <div id="inp">
+    <button id="hbtn">💡 Pista</button>
+    <textarea id="txt" placeholder="Escribí tu mensaje como asesor..." rows="1"></textarea>
+    <button id="sbtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button>
   </div>
-  <div id="fin-bar">
-    <button id="fin-sim-btn">🔴 Fin Simulador</button>
-  </div>
-
+  <div id="fbar"><button id="fbtn">🔴 Fin Simulador</button></div>
 </div>
 <script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+var PROXY = 'https://script.google.com/macros/s/AKfycbzjsejFmn_7P2co4TgTw_qkVa6pPADpy7Sj2zbfFpYVVxEXheLXi9kriG5FVmPZ9AEIqg/exec';
 
-// ─── PERFILES ────────────────────────────────────────────────────────────────
-const LEADS = [
-  { id:1, name:"Valeria Rodríguez", emoji:"👩", age:34, career:"Lic. en Administración de RRHH",
-    job:"trabaja en Recursos Humanos hace 8 años en una empresa mediana",
-    study:"tiene el secundario completo pero nunca pudo terminar la universidad",
-    goal:"quiere ascender pero su empresa empezó a pedir título universitario",
-    objection:"no tiene tiempo porque tiene dos hijos chicos y llega cansada del trabajo",
-    payment:"tarjeta de crédito", hasSecundario:true,
-    outcomes:{ inscrito:"Si empatiza con su situación, habla de flexibilidad horaria y conecta con ascender, da sus datos.", no_amable:"Si habla de características sin escucharla, dice que lo va a pensar.", corto:"Si la interrumpe o apura, corta sin despedirse.", insulto:"Si insiste agresivamente, le dice que no la moleste más y corta." }},
-  { id:2, name:"Martín Gómez", emoji:"👨", age:27, career:"Lic. en Negocios Internacionales",
-    job:"es vendedor en una empresa de tecnología y le va bien económicamente",
-    study:"tiene el secundario completo",
-    goal:"quiere un título para mejorar su perfil y pasar a roles de liderazgo",
-    objection:"le preocupa si un título 100% online tiene el mismo peso que uno presencial",
-    payment:"débito bancario", hasSecundario:true,
-    outcomes:{ inscrito:"Si explica RVOE, apostilla y reconocimientos internacionales con solidez, se inscribe.", no_amable:"Si no puede responder bien sobre el valor del título, dice que va a seguir buscando.", corto:"Si inventa datos o exagera, lo desafía y corta.", insulto:"Si lo trata de ignorante, lo insulta y corta." }},
-  { id:3, name:"Susana Pereyra", emoji:"👩", age:45, career:"Lic. en Psicología Organizacional",
-    job:"es administrativa en una clínica privada hace 12 años",
-    study:"tiene el secundario completo",
-    goal:"quiere estudiar algo que la haga crecer, siempre lo postergó por la familia",
-    objection:"siente que ya es tarde para estudiar a su edad y no sabe si va a poder con la tecnología",
-    payment:"efectivo o transferencia", hasSecundario:true,
-    outcomes:{ inscrito:"Si la escucha con empatía y conecta con su deseo de crecimiento, se inscribe emocionada.", no_amable:"Si le habla de datos sin conectar con sus miedos, dice que lo va a pensar.", corto:"Si minimiza sus miedos, se siente incomprendida y corta.", insulto:"Si la apura o habla de cupos, se ofende y pide que no la llamen más." }},
-  { id:4, name:"Carlos Méndez", emoji:"👨", age:38, career:"Lic. en Administración",
-    job:"tiene su propio negocio de construcción y maneja bien los números",
-    study:"tiene el secundario completo",
-    goal:"quiere formalizar sus conocimientos de gestión para hacer crecer su empresa",
-    objection:"dice que estudiar online no le va porque no es bueno con la tecnología",
-    payment:"transferencia bancaria", hasSecundario:true,
-    outcomes:{ inscrito:"Si conecta el programa con el crecimiento de su negocio y habla del campus como herramienta simple, se inscribe.", no_amable:"Si no rebate la objeción tecnológica con solidez, dice que no es lo suyo.", corto:"Si lo hace sentir tonto, corta.", insulto:"Si lo interrumpe o lo trata de anticuado, lo insulta y corta." }},
-  { id:5, name:"Lucía Torres", emoji:"👩", age:29, career:"Lic. en Comunicación Organizacional",
-    job:"es docente en una escuela primaria del sector público",
-    study:"tiene el secundario completo",
-    goal:"quiere crecer profesionalmente, sumar puntaje docente y ganar más",
-    objection:"tiene miedo de no poder pagar las cuotas con su sueldo docente",
-    payment:"tarjeta de crédito en cuotas sin interés", hasSecundario:true,
-    outcomes:{ inscrito:"Si habla de opciones de pago flexibles y Asistencia Universitaria, se inscribe.", no_amable:"Si no tiene respuestas claras sobre costos, dice que necesita organizarse.", corto:"Si minimiza su preocupación económica, corta.", insulto:"Si insiste agresivamente, le dice que no la llamen más." }},
-  { id:6, name:"Norma Castillo", emoji:"👵", age:67, career:"Lic. en Educación",
-    job:"está jubilada, fue docente de primaria durante 30 años",
-    study:"tiene el secundario completo y título de maestra",
-    goal:"quiere mantenerse activa intelectualmente y sentirse útil",
-    objection:"siente que a su edad ya no tiene sentido y le preocupa no entender la tecnología",
-    payment:"tarjeta de débito de su jubilación", hasSecundario:true,
-    outcomes:{ inscrito:"Si la escucha con empatía y le explica pacientemente la plataforma, se inscribe emocionada.", no_amable:"Si le habla de salida laboral sin entender que está jubilada, dice que no es lo que busca.", corto:"Si la apura o usa tecnicismos, se marea y corta.", insulto:"Si es condescendiente, se ofende y pide que no la llamen más." }},
-  { id:7, name:"Tomás Herrera", emoji:"👦", age:17, career:"Interesado en Ing. en Sistemas (sin secundario)",
-    job:"es estudiante de 5to año del secundario",
-    study:"NO tiene el secundario completo, le falta 1 año",
-    goal:"tiene curiosidad sobre qué puede estudiar cuando termine",
-    objection:"ninguna, es un prospecto prematuro",
-    payment:"no aplica", hasSecundario:false,
-    outcomes:{ sin_secundario:"ÉXITO: el asesor detecta que no tiene secundario, informa que es requisito y cierra la conversación cordialmente." }},
-  { id:8, name:"Diego Fernández", emoji:"👨‍💼", age:35, career:"Maestría en Ciencia de Datos para Negocios",
-    job:"es Licenciado en Administración y trabaja como analista en una multinacional",
-    study:"tiene secundario completo y licenciatura universitaria",
-    goal:"hacer una Maestría en Ciencia de Datos o Ciberseguridad para cambiar de área",
-    objection:"quiere saber qué diferencia tiene la maestría de Utel vs una argentina presencial",
-    payment:"tarjeta de crédito corporativa", hasSecundario:true,
-    outcomes:{ inscrito:"Si conoce bien el portafolio de maestrías, RVOE, apostilla y enfoque profesionalizante, se inscribe.", no_amable:"Si no puede responder preguntas técnicas con solidez, dice que va a seguir evaluando.", corto:"Si inventa reconocimientos, lo desafía y corta.", insulto:"Si es condescendiente por sus preguntas exigentes, lo insulta y corta." }},
-  { id:9, name:"Rodrigo Sánchez", emoji:"👨", age:31, career:"Lic. en Ingeniería en Logística y Transporte",
-    job:"trabaja en logística en una empresa de distribución",
-    study:"tiene el secundario completo",
-    goal:"crecer en su empresa — pero solo pregunta el precio desde el primer mensaje",
-    objection:"pregunta el precio y lo repite si no le responden",
-    payment:"transferencia bancaria", hasSecundario:true,
-    outcomes:{ inscrito:"Si hace sondeo ANTES de dar el precio, descubre el objetivo real y genera valor, se inscribe.", no_amable:"Si da el precio sin sondear, dice que es caro y corta.", corto:"Si ignora la pregunta del precio más de dos veces, se frustra y corta.", insulto:"Si lo reta por preguntar el precio, lo insulta y corta." }},
-  { id:10, name:"Roberto Villalba", emoji:"👨", age:42, career:"Lic. en Administración",
-    job:"trabaja en la administración de un municipio hace 15 años",
-    study:"tiene el secundario completo pero nunca fue a la universidad",
-    goal:"su jefe le dijo que necesita título para seguir creciendo dentro del municipio",
-    objection:"no sabe si un título mexicano online le va a servir en el Estado argentino",
-    payment:"tarjeta de débito", hasSecundario:true,
-    outcomes:{ inscrito:"Si es honesto sobre la validez del título, aprecia la honestidad y se inscribe.", no_amable:"Si no tiene claridad sobre la validez, dice que lo va a consultar y corta.", corto:"Si asegura validez total en el Estado sin aclaraciones, desconfía y corta.", insulto:"Si usa urgencia falsa, lo insulta y corta." }},
-  { id:11, name:"Gabriela Romero", emoji:"👩", age:32, career:"Lic. en Administración de Empresas",
-    job:"trabaja de cajera en un supermercado en doble turno",
-    study:"tiene el secundario completo",
-    goal:"salir de la caja, conseguir trabajo de oficina y ganar mejor",
-    objection:"no tiene tiempo: llega muerta, tiene 2 hijos y los atiende sola",
-    payment:"efectivo o cuotas pequeñas", hasSecundario:true,
-    outcomes:{ inscrito:"Si empatiza profundamente y conecta el título con el cambio de trabajo que busca, se inscribe.", no_amable:"Si habla de pilares sin conectar con su realidad, dice que le parece lindo pero no puede.", corto:"Si la interrumpe, corta.", insulto:"Si minimiza su falta de tiempo, le dice que no sabe nada de su vida y corta." }},
-  { id:12, name:"Agustina Paz", emoji:"👩", age:24, career:"Lic. en Psicología Organizacional",
-    job:"trabaja en un call center mientras busca algo mejor",
-    study:"tiene el secundario completo, empezó Psicología presencial y la abandonó al 2do año",
-    goal:"retomar estudios universitarios con algo más flexible",
-    objection:"ya intentó estudiar y la dejó, tiene miedo de fracasar y tirar plata",
-    payment:"tarjeta de crédito", hasSecundario:true,
-    outcomes:{ inscrito:"Si valida su experiencia sin juzgarla y explica por qué Utel es diferente, se inscribe.", no_amable:"Si va directo al producto sin trabajar la objeción emocional, dice que lo va a pensar.", corto:"Si minimiza su miedo, se siente ninguneada y corta.", insulto:"Si es condescendiente sobre su abandono, se ofende y corta." }},
-  { id:13, name:"Héctor Gutiérrez", emoji:"👨", age:50, career:"Lic. en Emprendimiento",
-    job:"es dueño de una ferretería con 3 sucursales, nunca estudió pero le fue muy bien",
-    study:"tiene el secundario completo",
-    goal:"formalizar sus conocimientos de administración y finanzas",
-    objection:"no cree en estudiar por internet, dice que eso no vale nada",
-    payment:"efectivo o transferencia", hasSecundario:true,
-    outcomes:{ inscrito:"Si respeta su experiencia, muestra RVOE y apostilla como hechos y conecta con su negocio, cede y se inscribe.", no_amable:"Si no tiene argumentos sólidos, dice que no es para él y corta.", corto:"Si discute en vez de escucharlo, corta.", insulto:"Si lo trata de anticuado, lo insulta y corta." }},
-  { id:14, name:"Mariana Ibáñez", emoji:"👩", age:38, career:"Lic. en Administración de RRHH",
-    job:"quedó sin trabajo hace 3 meses, antes era administrativa",
-    study:"tiene el secundario completo",
-    goal:"aprovechar el tiempo sin trabajo para estudiar y reinsertarse mejor",
-    objection:"no tiene trabajo y no sabe cómo va a pagar",
-    payment:"transferencia o cuotas pequeñas", hasSecundario:true,
-    outcomes:{ inscrito:"Si menciona la Asistencia Universitaria por desempleo y cuotas accesibles, se emociona y se inscribe.", no_amable:"Si no conoce el beneficio por desempleo, dice que cuando tenga trabajo lo llame.", corto:"Si la hace sentir que no califica, corta frustrada.", insulto:"Si la presiona con urgencia, le dice que no entiende y corta." }},
-  { id:15, name:"Florencia Acosta", emoji:"👩‍⚕️", age:29, career:"Lic. en Ciencias de la Salud",
-    job:"trabaja como técnica en enfermería en un hospital privado hace 5 años",
-    study:"tiene el secundario completo y título de técnica en enfermería",
-    goal:"hacer la Licenciatura en Ciencias de la Salud para ascender a supervisión",
-    objection:"quiere saber si el título de Utel le va a servir en hospitales públicos",
-    payment:"tarjeta de crédito", hasSecundario:true,
-    outcomes:{ inscrito:"Si es honesto sobre la validez del título, aprecia la honestidad y se inscribe.", no_amable:"Si no sabe responder sobre validez en salud, dice que necesita consultar.", corto:"Si promete validez total en públicos, desconfía y corta.", insulto:"Si minimiza sus dudas, le dice que busque mejor información y corta." }}
+// ─── PERFILES ─────────────────────────────────────────────────────────────────
+var LEADS = [
+  {id:1,name:"Valeria Rodríguez",emoji:"👩",age:34,career:"Lic. en Administración de RRHH",job:"trabaja en Recursos Humanos hace 8 años en una empresa mediana",study:"tiene el secundario completo pero nunca pudo terminar la universidad",goal:"quiere ascender pero su empresa empezó a pedir título universitario",objection:"no tiene tiempo porque tiene dos hijos chicos y llega cansada del trabajo",payment:"tarjeta de crédito",hasSecundario:true,outcomes:{inscrito:"Si empatiza con su situación y habla de flexibilidad horaria, da sus datos.",no_amable:"Si habla de características sin escucharla, dice que lo va a pensar.",corto:"Si la interrumpe o apura, corta.",insulto:"Si insiste agresivamente, le dice que no la moleste más y corta."}},
+  {id:2,name:"Martín Gómez",emoji:"👨",age:27,career:"Lic. en Negocios Internacionales",job:"es vendedor en una empresa de tecnología",study:"tiene el secundario completo",goal:"quiere un título para mejorar su perfil profesional",objection:"le preocupa si un título online tiene el mismo peso que uno presencial",payment:"débito bancario",hasSecundario:true,outcomes:{inscrito:"Si explica RVOE y apostilla con solidez, se inscribe.",no_amable:"Si no puede responder bien sobre el título, dice que va a seguir buscando.",corto:"Si inventa datos, lo desafía y corta.",insulto:"Si lo trata de ignorante, lo insulta y corta."}},
+  {id:3,name:"Susana Pereyra",emoji:"👩",age:45,career:"Lic. en Psicología Organizacional",job:"es administrativa en una clínica privada hace 12 años",study:"tiene el secundario completo",goal:"quiere estudiar algo que la haga crecer",objection:"siente que ya es tarde para estudiar y no sabe si va a poder con la tecnología",payment:"efectivo o transferencia",hasSecundario:true,outcomes:{inscrito:"Si la escucha con empatía, se inscribe emocionada.",no_amable:"Si habla solo de datos, dice que lo va a pensar.",corto:"Si minimiza sus miedos, corta.",insulto:"Si la apura, se ofende y corta."}},
+  {id:4,name:"Carlos Méndez",emoji:"👨",age:38,career:"Lic. en Administración",job:"tiene su propio negocio de construcción",study:"tiene el secundario completo",goal:"quiere formalizar sus conocimientos de gestión",objection:"dice que estudiar online no le va porque no es bueno con la tecnología",payment:"transferencia bancaria",hasSecundario:true,outcomes:{inscrito:"Si conecta el programa con su negocio, se inscribe.",no_amable:"Si no rebate la objeción tecnológica, dice que no es lo suyo.",corto:"Si lo hace sentir tonto, corta.",insulto:"Si lo trata de anticuado, lo insulta y corta."}},
+  {id:5,name:"Lucía Torres",emoji:"👩",age:29,career:"Lic. en Comunicación Organizacional",job:"es docente en una escuela primaria del sector público",study:"tiene el secundario completo",goal:"quiere crecer profesionalmente y ganar más",objection:"tiene miedo de no poder pagar las cuotas con su sueldo docente",payment:"tarjeta de crédito en cuotas",hasSecundario:true,outcomes:{inscrito:"Si habla de opciones de pago y Asistencia Universitaria, se inscribe.",no_amable:"Si no tiene respuestas sobre costos, dice que necesita organizarse.",corto:"Si minimiza su preocupación económica, corta.",insulto:"Si insiste agresivamente, le dice que no la llamen más."}},
+  {id:6,name:"Norma Castillo",emoji:"👵",age:67,career:"Lic. en Educación",job:"está jubilada, fue docente de primaria 30 años",study:"tiene el secundario completo y título de maestra",goal:"quiere mantenerse activa intelectualmente",objection:"siente que a su edad ya no tiene sentido y le preocupa la tecnología",payment:"tarjeta de débito",hasSecundario:true,outcomes:{inscrito:"Si la escucha con empatía y paciencia, se inscribe emocionada.",no_amable:"Si le habla de salida laboral, dice que no es lo que busca.",corto:"Si la apura o usa tecnicismos, corta.",insulto:"Si es condescendiente, se ofende y pide que no la llamen más."}},
+  {id:7,name:"Tomás Herrera",emoji:"👦",age:17,career:"Interesado en Ing. en Sistemas (sin secundario)",job:"es estudiante de 5to año del secundario",study:"NO tiene el secundario completo, le falta 1 año",goal:"tiene curiosidad sobre qué puede estudiar cuando termine",objection:"ninguna",payment:"no aplica",hasSecundario:false,outcomes:{sin_secundario:"El asesor detecta que no tiene secundario, informa que es requisito y cierra cordialmente."}},
+  {id:8,name:"Diego Fernández",emoji:"👨‍💼",age:35,career:"Maestría en Ciencia de Datos para Negocios",job:"es Licenciado en Administración en una multinacional",study:"tiene secundario completo y licenciatura",goal:"hacer una Maestría en Ciencia de Datos o Ciberseguridad",objection:"quiere saber qué diferencia tiene la maestría de Utel vs una argentina presencial",payment:"tarjeta de crédito corporativa",hasSecundario:true,outcomes:{inscrito:"Si conoce bien el portafolio y explica RVOE y apostilla, se inscribe.",no_amable:"Si no responde preguntas técnicas, dice que va a seguir evaluando.",corto:"Si inventa reconocimientos, lo desafía y corta.",insulto:"Si es condescendiente, lo insulta y corta."}},
+  {id:9,name:"Rodrigo Sánchez",emoji:"👨",age:31,career:"Lic. en Ingeniería en Logística y Transporte",job:"trabaja en logística en una empresa de distribución",study:"tiene el secundario completo",goal:"crecer en su empresa — pero solo pregunta el precio",objection:"pregunta el precio desde el primer mensaje y lo repite",payment:"transferencia bancaria",hasSecundario:true,outcomes:{inscrito:"Si hace sondeo antes de dar el precio y genera valor, se inscribe.",no_amable:"Si da el precio sin sondear, dice que es caro y corta.",corto:"Si ignora la pregunta del precio más de dos veces, corta.",insulto:"Si lo reta por preguntar el precio, lo insulta y corta."}},
+  {id:10,name:"Roberto Villalba",emoji:"👨",age:42,career:"Lic. en Administración",job:"trabaja en la administración de un municipio hace 15 años",study:"tiene el secundario completo pero nunca fue a la universidad",goal:"su jefe le dijo que necesita título para seguir creciendo",objection:"no sabe si un título mexicano online le sirve en el Estado argentino",payment:"tarjeta de débito",hasSecundario:true,outcomes:{inscrito:"Si es honesto sobre la validez del título, aprecia la honestidad y se inscribe.",no_amable:"Si no tiene claridad sobre la validez, dice que lo va a consultar.",corto:"Si promete validez total en el Estado, desconfía y corta.",insulto:"Si usa urgencia falsa, lo insulta y corta."}},
+  {id:11,name:"Gabriela Romero",emoji:"👩",age:32,career:"Lic. en Administración de Empresas",job:"trabaja de cajera en un supermercado en doble turno",study:"tiene el secundario completo",goal:"salir de la caja y conseguir trabajo de oficina",objection:"no tiene tiempo: llega muerta y tiene 2 hijos sola",payment:"efectivo o cuotas pequeñas",hasSecundario:true,outcomes:{inscrito:"Si empatiza profundamente y conecta con su cambio de trabajo, se inscribe.",no_amable:"Si habla de pilares sin conectar con su realidad, dice que no puede.",corto:"Si la interrumpe, corta.",insulto:"Si minimiza su falta de tiempo, le dice que no sabe nada y corta."}},
+  {id:12,name:"Agustina Paz",emoji:"👩",age:24,career:"Lic. en Psicología Organizacional",job:"trabaja en un call center",study:"tiene el secundario completo, empezó Psicología y la abandonó",goal:"retomar estudios con algo más flexible",objection:"ya intentó estudiar y la dejó, tiene miedo de fracasar",payment:"tarjeta de crédito",hasSecundario:true,outcomes:{inscrito:"Si valida su experiencia y explica por qué Utel es diferente, se inscribe.",no_amable:"Si va directo al producto, dice que lo va a pensar.",corto:"Si minimiza su miedo, se siente ninguneada y corta.",insulto:"Si es condescendiente sobre su abandono, corta enojada."}},
+  {id:13,name:"Héctor Gutiérrez",emoji:"👨",age:50,career:"Lic. en Emprendimiento",job:"dueño de una ferretería con 3 sucursales",study:"tiene el secundario completo",goal:"formalizar sus conocimientos de administración",objection:"no cree en estudiar por internet, dice que no vale nada",payment:"efectivo o transferencia",hasSecundario:true,outcomes:{inscrito:"Si respeta su experiencia y muestra RVOE como hechos, cede y se inscribe.",no_amable:"Si no tiene argumentos sólidos, dice que no es para él.",corto:"Si discute en vez de escucharlo, corta.",insulto:"Si lo trata de anticuado, lo insulta y corta."}},
+  {id:14,name:"Mariana Ibáñez",emoji:"👩",age:38,career:"Lic. en Administración de RRHH",job:"quedó sin trabajo hace 3 meses",study:"tiene el secundario completo",goal:"aprovechar el tiempo para estudiar y reinsertarse",objection:"no tiene trabajo y no sabe cómo va a pagar",payment:"transferencia o cuotas pequeñas",hasSecundario:true,outcomes:{inscrito:"Si menciona la Asistencia Universitaria por desempleo, se emociona y se inscribe.",no_amable:"Si no conoce el beneficio, dice que cuando tenga trabajo lo llame.",corto:"Si la hace sentir que no califica, corta.",insulto:"Si la presiona con urgencia, le dice que no entiende y corta."}},
+  {id:15,name:"Florencia Acosta",emoji:"👩‍⚕️",age:29,career:"Lic. en Ciencias de la Salud",job:"trabaja como técnica en enfermería en hospital privado",study:"tiene el secundario completo y título de técnica",goal:"hacer la Licenciatura en Ciencias de la Salud para ascender",objection:"quiere saber si el título le sirve en hospitales públicos",payment:"tarjeta de crédito",hasSecundario:true,outcomes:{inscrito:"Si es honesto sobre la validez del título, aprecia la honestidad y se inscribe.",no_amable:"Si no sabe responder sobre validez en salud, dice que necesita consultar.",corto:"Si promete validez en públicos sin aclaraciones, desconfía y corta.",insulto:"Si minimiza sus dudas, le dice que busque mejor info y corta."}}
 ];
 
-// ─── ESTADO GLOBAL ────────────────────────────────────────────────────────────
-const PROXY = 'https://script.google.com/macros/s/AKfycbzAJoHLjAALvFd-PpgVqZPB5dsK-hTOsggM0opcAeLu6N_BGuy_81B8W92mUqI1QfJiXg/exec';
-let asesorNombre = '', asesorMail = '';
-let lead = null, messages = [], isLoading = false, gameOver = false, redirectCount = 0;
-let stages = { saludo:false, secundario:false, cierre:false };
-let acum = { preguntas:0, beneficios:0, objecionPendiente:false, objecionRefutada:false, escuchaFallas:0 };
+// ─── ESTADO ───────────────────────────────────────────────────────────────────
+var asesorNombre = '';
+var asesorMail = '';
+var lead = null;
+var msgs = [];
+var loading = false;
+var over = false;
+var redir = 0;
+var stg = {saludo:false, secundario:false, cierre:false};
+var ac = {preguntas:0, beneficios:0, objPendiente:false, objRefutada:false, escFallas:0};
 
-function getStages() {
-  return { saludo:stages.saludo, secundario:stages.secundario, sondeo:acum.preguntas>=3, beneficios:acum.beneficios>=5, objecion:acum.objecionRefutada, cierre:stages.cierre };
+function gStages() {
+  return {
+    saludo: stg.saludo,
+    secundario: stg.secundario,
+    sondeo: ac.preguntas >= 3,
+    beneficios: ac.beneficios >= 5,
+    objecion: ac.objRefutada,
+    cierre: stg.cierre
+  };
 }
+
+// ─── DOM ──────────────────────────────────────────────────────────────────────
+function G(id) { return document.getElementById(id); }
+function show(id) { G(id).style.display = 'flex'; }
+function hide(id) { G(id).style.display = 'none'; }
 
 // ─── REGISTRO ─────────────────────────────────────────────────────────────────
 function startSession() {
-  const nombre = document.getElementById('reg-nombre').value.trim();
-  const mail   = document.getElementById('reg-mail').value.trim();
-  if (!nombre || !mail || !mail.includes('@')) {
-    alert('Por favor ingresá tu nombre completo y un mail válido.');
+  var n = G('rnombre').value.trim();
+  var m = G('rmail').value.trim();
+  if (!n || !m || m.indexOf('@') < 0) {
+    alert('Ingresá tu nombre completo y un mail válido.');
     return;
   }
-  asesorNombre = nombre;
-  asesorMail   = mail;
-  document.getElementById('register-panel').style.display = 'none';
+  asesorNombre = n;
+  asesorMail = m;
+  hide('reg');
   initGame();
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function initGame() {
   lead = LEADS[Math.floor(Math.random() * LEADS.length)];
-  messages = []; isLoading = false; gameOver = false; redirectCount = 0;
-  stages = { saludo:false, secundario:false, cierre:false };
-  acum   = { preguntas:0, beneficios:0, objecionPendiente:false, objecionRefutada:false, escuchaFallas:0 };
+  msgs = [];
+  loading = false;
+  over = false;
+  redir = 0;
+  stg = {saludo:false, secundario:false, cierre:false};
+  ac = {preguntas:0, beneficios:0, objPendiente:false, objRefutada:false, escFallas:0};
 
-  document.getElementById('chat').innerHTML = '';
-  document.getElementById('result-panel').style.display   = 'none';
-  document.getElementById('conclusion-box').style.display = 'none';
-  document.getElementById('mail-status').textContent      = '';
+  G('chat').innerHTML = '';
+  hide('res');
+  G('cbox').style.display = 'none';
+  G('mstatus').textContent = '';
+  G('lav').textContent = lead.emoji;
+  G('lnm').textContent = lead.name;
+  G('ldc').textContent = lead.age + ' años · ' + lead.career;
+  G('stg').textContent = 'Etapa: Saludo';
+  G('txt').value = '';
 
-  show('header'); show('score-bar'); showFlex('chat');
-  showFlex('input-area'); showFlex('fin-bar');
-
-  document.getElementById('lead-name').textContent  = lead.name;
-  document.getElementById('lead-desc').textContent  = lead.age + ' años · ' + lead.career;
-  document.getElementById('lead-avatar').textContent = lead.emoji;
-  document.getElementById('stage-badge').textContent = 'Etapa: Saludo';
+  show('hdr'); show('sbar'); show('chat'); show('inp'); show('fbar');
   updateUI();
-
-  setTimeout(() => addBubble('lead', '¿Hola? ¿Quién habla?'), 700);
-  document.getElementById('msg-input').value = '';
-  document.getElementById('msg-input').focus();
+  setTimeout(function() { bubble('lead', '¿Hola? ¿Quién habla?'); }, 700);
+  G('txt').focus();
 }
-
-function show(id)     { document.getElementById(id).style.display = 'flex'; }
-function showFlex(id) { document.getElementById(id).style.display = 'flex'; }
-function hide(id)     { document.getElementById(id).style.display = 'none'; }
 
 // ─── UI ───────────────────────────────────────────────────────────────────────
 function updateUI() {
-  const s = getStages();
-  ['saludo','secundario','sondeo','beneficios','objecion','cierre'].forEach(k => {
-    const d = document.getElementById('dot-' + k); if (d) d.className = 'score-dot' + (s[k] ? ' done' : '');
+  var s = gStages();
+  ['saludo','secundario','sondeo','beneficios','objecion','cierre'].forEach(function(k) {
+    var d = G('d-' + k);
+    if (d) d.className = 'sd' + (s[k] ? ' done' : '');
   });
-  document.getElementById('prog-sondeo').textContent    = Math.min(acum.preguntas, 3) + '/3';
-  document.getElementById('prog-beneficios').textContent = Math.min(acum.beneficios, 5) + '/5';
-  if (!stages.saludo) { document.getElementById('stage-badge').textContent = 'Etapa: Saludo'; return; }
-  if (!stages.secundario) { document.getElementById('stage-badge').textContent = 'Etapa: Secundario'; return; }
-  if (!stages.cierre) {
-    const p = [];
-    if (acum.preguntas < 3) p.push('Sondeo ' + acum.preguntas + '/3');
-    if (acum.beneficios < 5) p.push('Beneficios ' + acum.beneficios + '/5');
-    if (acum.objecionPendiente) p.push('⚠️ Refutá objeción');
-    document.getElementById('stage-badge').textContent = p.length ? p.join(' · ') : 'Listo para cerrar';
-  }
+  G('p-sondeo').textContent = Math.min(ac.preguntas, 3) + '/3';
+  G('p-benef').textContent = Math.min(ac.beneficios, 5) + '/5';
+  if (!stg.saludo) { G('stg').textContent = 'Etapa: Saludo'; return; }
+  if (!stg.secundario) { G('stg').textContent = 'Etapa: Secundario'; return; }
+  var p = [];
+  if (ac.preguntas < 3) p.push('Sondeo ' + ac.preguntas + '/3');
+  if (ac.beneficios < 5) p.push('Beneficios ' + ac.beneficios + '/5');
+  if (ac.objPendiente) p.push('⚠️ Refutá objeción');
+  G('stg').textContent = p.length ? p.join(' · ') : 'Listo para cerrar';
 }
 
-function addBubble(role, text) {
-  const chat = document.getElementById('chat');
-  const msg = document.createElement('div'); msg.className = 'msg ' + role;
-  const av  = document.createElement('div'); av.className  = 'avatar-sm ' + (role === 'lead' ? 'avatar-lead' : 'avatar-asesor');
+function bubble(role, text) {
+  var chat = G('chat');
+  var msg = document.createElement('div'); msg.className = 'msg ' + role;
+  var av = document.createElement('div'); av.className = 'av ' + role;
   av.textContent = role === 'lead' ? lead.emoji : 'VOS';
-  const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.textContent = text;
-  msg.appendChild(av); msg.appendChild(bubble); chat.appendChild(msg);
+  var b = document.createElement('div'); b.className = 'bbl'; b.textContent = text;
+  msg.appendChild(av); msg.appendChild(b); chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
 }
 
-function addFeedback(quality, feedback, tip) {
-  if (!feedback) return;
-  const chat = document.getElementById('chat');
-  const card = document.createElement('div');
-  card.className = 'feedback-card ' + (quality === 'good' ? 'good' : quality === 'bad' ? 'bad' : '');
-  const icon = quality === 'good' ? '✅' : quality === 'bad' ? '❌' : '💡';
-  card.innerHTML = '<strong>' + icon + ' ' + feedback + '</strong>' + (tip ? '<br><span style="opacity:0.85">→ ' + tip + '</span>' : '');
-  chat.appendChild(card); chat.scrollTop = chat.scrollHeight;
+function feedback(q, f, t) {
+  if (!f) return;
+  var chat = G('chat');
+  var c = document.createElement('div');
+  c.className = 'fc' + (q === 'good' ? ' good' : q === 'bad' ? ' bad' : '');
+  var ic = q === 'good' ? '✅' : q === 'bad' ? '❌' : '💡';
+  c.innerHTML = '<strong>' + ic + ' ' + f + '</strong>' + (t ? '<br><span style="opacity:.85">→ ' + t + '</span>' : '');
+  chat.appendChild(c); chat.scrollTop = chat.scrollHeight;
 }
 
 function showTyping() {
-  const chat = document.getElementById('chat');
-  const t = document.createElement('div'); t.className = 'msg lead'; t.id = 'typing-ind';
-  t.innerHTML = '<div class="avatar-sm avatar-lead">' + lead.emoji + '</div><div class="typing"><span></span><span></span><span></span></div>';
+  var chat = G('chat');
+  var t = document.createElement('div'); t.className = 'msg lead'; t.id = 'typ';
+  t.innerHTML = '<div class="av lead">' + lead.emoji + '</div><div class="typ"><span></span><span></span><span></span></div>';
   chat.appendChild(t); chat.scrollTop = chat.scrollHeight;
 }
-function removeTyping() { const t = document.getElementById('typing-ind'); if (t) t.remove(); }
+function hideTyping() { var t = G('typ'); if (t) t.remove(); }
 
-function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
-
-// ─── API PROXY ────────────────────────────────────────────────────────────────
-async function callAI(system, msgs, maxTokens) {
-  const geminiMsgs = msgs.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
-  const res = await fetch(PROXY, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type:'gemini', system, messages: geminiMsgs, maxTokens: maxTokens || 1000 })
+// ─── API ──────────────────────────────────────────────────────────────────────
+function callAI(system, messages, maxT) {
+  var gm = messages.map(function(m) {
+    return { role: m.role === 'assistant' ? 'model' : 'user', parts: [{text: m.content}] };
   });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data.text;
+  return fetch(PROXY, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({type:'gemini', system:system, messages:gm, maxTokens:maxT||1000})
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.error) throw new Error(d.error);
+    return d.text;
+  });
 }
 
-// ─── PROMPT DEL LEAD ─────────────────────────────────────────────────────────
-function getLeadPrompt() {
-  const sinSecPrompt = `Cuando te pregunten si terminaste el secundario, decís honestamente que no, te falta 1 año. Si el asesor detecta esto y cierra la conversación amablemente explicando que es requisito, respondés con comprensión y te despedís. Si el asesor intenta venderte igual, te confundís y eventualmente preguntás si podés inscribirte igual.`;
-  const conSecPrompt = `DESENLACES POSIBLES según cómo se comporte el asesor:
-INSCRIPCIÓN: ${lead.outcomes.inscrito}
-NO AMABLE: ${lead.outcomes.no_amable}
-CORTÓ: ${lead.outcomes.corto}
-INSULTO: ${lead.outcomes.insulto}
-Si cerrás la venta, dá nombre completo (${lead.name}), DNI de 8 dígitos inventado, forma de pago (${lead.payment}).`;
-
-  return `Sos ${lead.name}, ${lead.age} años. ${lead.job}. ${lead.study}. ${lead.goal}. Tu objeción: ${lead.objection}.
-Estás recibiendo una llamada de un asesor de Utel Universidad, universidad 100% online de México con títulos oficiales SEP y apostilla de La Haya en más de 90 países.
-COMPORTAMIENTO: Respondé natural y realista. Al principio estás desconfiado. Si el asesor se presenta bien, abrís más. ${lead.hasSecundario ? 'Confirmás que tenés el secundario cuando te pregunten.' : sinSecPrompt}
-Si el asesor ignora tus preguntas directas, te frustrás y lo mencionás. Respondé en 1-4 oraciones cortas como en una llamada. Hablá en español rioplatense (vos, tenés, querés). NO rompas el personaje.
-${lead.hasSecundario ? conSecPrompt : ''}`;
+// ─── PROMPT LEAD ─────────────────────────────────────────────────────────────
+function leadPrompt() {
+  var sp = 'Cuando te pregunten si terminaste el secundario, decís que no, te falta 1 año. Si el asesor detecta esto y cierra amablemente explicando que es requisito, respondés con comprensión y te despedís. Si intenta venderte igual, te confundís y eventualmente preguntás si podés inscribirte igual.';
+  var cp = 'DESENLACES según comportamiento del asesor:\nINSCRIPCIÓN: ' + lead.outcomes.inscrito + '\nNO AMABLE: ' + lead.outcomes.no_amable + '\nCORTÓ: ' + lead.outcomes.corto + '\nINSULTO: ' + lead.outcomes.insulto + '\nSi cerrás la venta: dá nombre (' + lead.name + '), DNI de 8 dígitos inventado, forma de pago (' + lead.payment + ').';
+  return 'Sos ' + lead.name + ', ' + lead.age + ' años. ' + lead.job + '. ' + lead.study + '. ' + lead.goal + '. Objeción principal: ' + lead.objection + '.\nRecibís una llamada de un asesor de Utel Universidad, 100% online México, títulos SEP, apostilla La Haya +90 países.\nCOMPORTAMIENTO: Respondé natural y realista. Al inicio estás desconfiado. Si el asesor se presenta bien, abrís más. ' + (lead.hasSecundario ? 'Confirmás que tenés el secundario cuando te pregunten.' : sp) + '\nSi el asesor ignora tus preguntas directas, te frustrás y lo decís. Respondé en 1-4 oraciones cortas. Español rioplatense (vos, tenés, querés). NO rompas el personaje bajo ninguna circunstancia.\n' + (lead.hasSecundario ? cp : '');
 }
 
-// ─── EVALUADOR — SYSTEM FIJO (INTERPRETATIVO, SIEMPRE) ───────────────────────
-function getEvalSystem() {
-  return `Sos un coach de ventas evaluando mensajes de asesores comerciales de Utel Universidad Argentina.
-
-REGLA ABSOLUTA E INAMOVIBLE — SE APLICA EN CADA EVALUACIÓN SIN EXCEPCIÓN:
-Interpretá siempre el SENTIDO y la INTENCIÓN. NUNCA evalúes las palabras literales, el estilo, el orden, la formalidad ni la gramática. Cada asesor se expresa diferente. Todos son válidos si comunican lo que necesitan comunicar.
-
-EJEMPLOS CONCRETOS DE INTERPRETACIÓN GENEROSA:
-- "buenas soy juan de utel" → saludo cumplido ✅
-- "hola te llamo porque utel tiene algo para vos" → saludo cumplido ✅
-- "che terminaste el cole?" → verificación de secundario ✅
-- "contame de vos" → pregunta de sondeo ✅
-- "te pido disculpas, contame de tu interés por la carrera" → sondeo + empatía ✅
-- "tenemos flexibilidad total para estudiar" → beneficio mencionado ✅
-- "mirá no te preocupes por eso" → intento de rebatir objeción ✅
-- "entiendo, es una preocupación válida" → transición válida ✅
-- "y bueno, cada uno tiene sus tiempos" → transición válida ✅
-
-EN CASO DE DUDA SIEMPRE ELEGÍ "good". Solo "bad" cuando el error es claro, concreto e inequívoco y daña la venta.
-
-Respondé SIEMPRE con JSON válido exacto:
-{"stage":"saludo|secundario|sondeo|beneficios|objecion|cierre|general","quality":"good|warning|bad","isRedirect":false,"nuevasPreguntas":0,"nuevosBeneficios":0,"objecionDetectada":false,"refutoObjecion":false,"refutoInmediato":false,"ignoroConsulta":false,"feedback":"1 oración breve","tip":"1 consejo o confirmación"}`;
+// ─── EVALUADOR — SYSTEM FIJO INTERPRETATIVO ──────────────────────────────────
+function evalSystem() {
+  return 'Sos un coach de ventas evaluando asesores de Utel Universidad Argentina.\n\nREGLA ABSOLUTA E INAMOVIBLE: Interpretá SIEMPRE la INTENCIÓN y el SENTIDO del mensaje. NUNCA evalúes palabras literales, estilo, orden ni gramática. Cada asesor se expresa diferente — todos son válidos si comunican lo que necesitan.\n\nEJEMPLOS DE INTERPRETACIÓN GENEROSA:\n- "buenas soy juan de utel" = saludo ✅\n- "hola te llamo de la universidad" = saludo ✅\n- "che terminaste el cole?" = verificación secundario ✅\n- "contame de vos" = sondeo ✅\n- "te pido disculpas contame de tu interés" = sondeo ✅\n- "tenemos flexibilidad total" = beneficio ✅\n- "no te preocupes por eso" = rebate objeción ✅\n- "entiendo tu preocupación" = transición válida ✅\n\nEN DUDA: siempre "good". Solo "bad" para errores claros e inequívocos que dañan la venta.\n\nRespondé SOLO con JSON exacto sin texto extra:\n{"stage":"saludo|secundario|sondeo|beneficios|objecion|cierre|general","quality":"good|warning|bad","isRedirect":false,"nuevasPreguntas":0,"nuevosBeneficios":0,"objDetectada":false,"objRefutada":false,"objInmediata":false,"ignoroConsulta":false,"feedback":"1 frase","tip":"1 consejo"}';
 }
 
-function getEvalContext(text) {
-  const s = getStages();
-  const completadas = Object.keys(s).filter(k => s[k]);
-  return `CONTEXTO: Lead: ${lead.name}, ${lead.age} años. Objeción: ${lead.objection}.
-Etapas cumplidas (NO volver a evaluar): ${completadas.length ? completadas.join(', ') : 'ninguna'}.
-Preguntas sondeo acumuladas: ${acum.preguntas}/3. Beneficios mencionados: ${acum.beneficios}/5. Objeción pendiente: ${acum.objecionPendiente}.
-
-CRITERIOS (interpretá el SENTIDO no las palabras):
-- saludo: ¿comunicó quién es o que llama de Utel? cualquier variante vale
-- secundario: ¿preguntó de cualquier forma por el nivel educativo del prospecto?
-- nuevasPreguntas: expresiones que busquen conocer al prospecto (preguntas, invitaciones a hablar, interés). Máximo 3.
-- nuevosBeneficios: menciones positivas de Utel (RVOE, apostilla, flexibilidad, online, acompañamiento, Voxy, Platzi, empleabilidad, comunidad, campus, Asistencia Universitaria, cuotas, maestrías, etc.)
-- objecionDetectada: ¿el lead expresó duda, resistencia o preocupación?
-- refutoObjecion: ¿el asesor intentó responder o abordar una objeción de cualquier manera?
-- refutoInmediato: ¿lo hizo en este turno o el siguiente?
-- ignoroConsulta: ¿el lead hizo pregunta directa específica que el asesor ignoró TOTALMENTE? En duda: false
-- isRedirect: ¿es transición natural (empatía, repregunta, conexión)? En duda: true
-- cierre: ¿pidió datos para inscribir (nombre, DNI, pago)?
-
-MENSAJE A EVALUAR: "${text}"`;
+function evalContext(text) {
+  var s = gStages();
+  var comp = Object.keys(s).filter(function(k) { return s[k]; });
+  return 'Lead: ' + lead.name + ', ' + lead.age + ' años. Objeción: ' + lead.objection + '.\nEtapas cumplidas (NO volver a evaluar): ' + (comp.length ? comp.join(', ') : 'ninguna') + '.\nSondeo: ' + ac.preguntas + '/3. Beneficios: ' + ac.beneficios + '/5. Objeción pendiente: ' + ac.objPendiente + '.\n\nCRITERIOS (interpretá el SENTIDO, nunca las palabras literales):\n- saludo: ¿se identificó de alguna forma? cualquier variante vale\n- secundario: ¿preguntó por nivel educativo de alguna manera?\n- nuevasPreguntas: expresiones que busquen conocer al prospecto (preguntas, invitaciones a hablar, interés). Máx 3.\n- nuevosBeneficios: menciones positivas de Utel (RVOE, apostilla, flexibilidad, online, acompañamiento, Voxy, Platzi, empleabilidad, comunidad, campus, Asistencia Universitaria, cuotas, maestrías...)\n- objDetectada: ¿el lead expresó duda, resistencia o preocupación?\n- objRefutada: ¿el asesor intentó responder una objeción de cualquier manera?\n- objInmediata: ¿lo hizo en este turno o el siguiente?\n- ignoroConsulta: ¿hay pregunta directa del lead completamente ignorada? En duda: false\n- isRedirect: ¿es transición natural? En duda: true\n- cierre: ¿pidió nombre, DNI o forma de pago?\n\nMENSAJE A EVALUAR: "' + text + '"';
 }
 
 // ─── DETECTAR DESENLACE ───────────────────────────────────────────────────────
 function detectOutcome(reply) {
-  const r = reply.toLowerCase();
-  if (/\d{7,8}/.test(reply) && /(tarjeta|transferencia|débito|efectivo|cuotas|pago)/i.test(reply)) return 'inscrito';
-  if (!lead.hasSecundario && /(requisito|no podés|no podes|cuando termines|lamentablemente|sin el secundario)/i.test(r)) return 'sin_secundario';
-  if (/(andate|la concha|puta|imbécil|idiota|no me llames más|borrame|no me jodas|hdp)/i.test(r)) return 'insulto';
-  if (/(corto\.|cuelga|chau\.|hasta luego\.|no me interesa para nada)/i.test(r) && reply.length < 120) return 'corto';
-  if (/(lo voy a pensar|lo pienso|te llamo yo|no por ahora|en otro momento|no es para mí)/i.test(r)) return 'no_amable';
+  var r = reply.toLowerCase();
+  if (/\d{7,8}/.test(reply) && /(tarjeta|transferencia|débito|efectivo|cuotas|pago)/i.test(reply)) return 'inscrito';
+  if (!lead.hasSecundario && /(requisito|no pod|cuando termines|sin el secundario|lamentablemente)/i.test(r)) return 'sin_secundario';
+  if (/(andate|la concha|puta|imbécil|idiota|no me llames|hdp|no me jodas)/i.test(r)) return 'insulto';
+  if (/(corto\b|cuelga|chau\.|hasta luego\.|no me interesa para nada)/i.test(r) && reply.length < 120) return 'corto';
+  if (/(lo voy a pensar|lo pienso|te llamo yo|no por ahora|en otro momento|no es para m)/i.test(r)) return 'no_amable';
   return null;
 }
 
 // ─── ENVIAR MENSAJE ───────────────────────────────────────────────────────────
-async function sendMessage() {
-  if (isLoading || gameOver) return;
-  const input = document.getElementById('msg-input');
-  const text  = input.value.trim();
+function sendMsg() {
+  if (loading || over) return;
+  var text = G('txt').value.trim();
   if (!text) return;
-  input.value = '';
-  addBubble('asesor', text);
-  messages.push({ role:'user', content: text });
-  isLoading = true;
-  document.getElementById('send-btn').disabled = true;
+  G('txt').value = '';
+  bubble('asesor', text);
+  msgs.push({role:'user', content:text});
+  loading = true;
+  G('sbtn').disabled = true;
 
-  const evalPromise = evaluateMessage(text);
+  var ep = evalMsg(text);
   showTyping();
 
-  try {
-    const reply = await callAI(getLeadPrompt(), messages);
-    removeTyping();
-    addBubble('lead', reply);
-    messages.push({ role:'assistant', content: reply });
-
-    const outcome = detectOutcome(reply);
+  callAI(leadPrompt(), msgs).then(function(reply) {
+    hideTyping();
+    bubble('lead', reply);
+    msgs.push({role:'assistant', content:reply});
+    var outcome = detectOutcome(reply);
     if (outcome) {
-      if (outcome === 'inscrito')       stages.cierre    = true;
-      if (outcome === 'sin_secundario') stages.secundario = true;
-      await evalPromise;
-      updateUI();
-      setTimeout(() => showResult(outcome), 1000);
+      if (outcome === 'inscrito') stg.cierre = true;
+      if (outcome === 'sin_secundario') stg.secundario = true;
+      ep.then(function() {
+        updateUI();
+        setTimeout(function() { showResult(outcome); }, 1000);
+      });
     }
-  } catch(err) {
-    removeTyping();
-    console.error('Error API:', err);
-    addFeedback('bad', 'Error de conexión. Verificá tu conexión a internet.', 'Intentá enviar el mensaje nuevamente.');
-  }
-  isLoading = false;
-  document.getElementById('send-btn').disabled = false;
+    loading = false;
+    G('sbtn').disabled = false;
+  }).catch(function(err) {
+    hideTyping();
+    console.error('API error:', err);
+    feedback('bad', 'Error de conexión. Verificá tu internet e intentá de nuevo.', '');
+    loading = false;
+    G('sbtn').disabled = false;
+  });
 }
 
-// ─── EVALUAR MENSAJE ──────────────────────────────────────────────────────────
-async function evaluateMessage(text) {
-  try {
-    const raw = await callAI(getEvalSystem(), [{ role:'user', content: getEvalContext(text) }]);
-    const r   = JSON.parse(raw.replace(/```json|```/g,'').trim());
-
-    if (typeof r.nuevasPreguntas  === 'number') acum.preguntas  += r.nuevasPreguntas;
-    if (typeof r.nuevosBeneficios === 'number') acum.beneficios += r.nuevosBeneficios;
-    if (r.objecionDetectada) acum.objecionPendiente = true;
-    if (r.refutoObjecion)    { acum.objecionPendiente = false; if (r.refutoInmediato) acum.objecionRefutada = true; }
-    if (r.ignoroConsulta)    acum.escuchaFallas++;
-
-    if (r.quality === 'good') {
-      if (r.stage === 'saludo'     && !stages.saludo)     { stages.saludo    = true; redirectCount = 0; }
-      if (r.stage === 'secundario' && !stages.secundario) { stages.secundario = true; redirectCount = 0; }
-      if (r.stage === 'cierre'     && !stages.cierre)       stages.cierre    = true;
-    }
-    updateUI();
-
-    if (r.isRedirect) {
-      redirectCount++;
-      if (r.quality === 'warning') addFeedback('warning', r.feedback, r.tip);
-      return;
-    }
-    redirectCount = 0;
-
-    if (r.ignoroConsulta) {
-      addFeedback('bad', 'El lead hizo una consulta y no la respondiste.', 'Respondé primero lo que pregunta el lead antes de continuar.');
-      return;
-    }
-    if (acum.objecionPendiente && !r.refutoObjecion) {
-      addFeedback('bad', 'El lead planteó una objeción que no refutaste.', 'Refutá la objeción antes de avanzar.');
-      return;
-    }
-    if (r.feedback) addFeedback(r.quality, r.feedback, r.tip);
-  } catch(e) { console.error('Eval error:', e); }
+// ─── EVALUAR ──────────────────────────────────────────────────────────────────
+function evalMsg(text) {
+  return callAI(evalSystem(), [{role:'user', content:evalContext(text)}]).then(function(raw) {
+    try {
+      var r = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      if (typeof r.nuevasPreguntas === 'number') ac.preguntas += r.nuevasPreguntas;
+      if (typeof r.nuevosBeneficios === 'number') ac.beneficios += r.nuevosBeneficios;
+      if (r.objDetectada) ac.objPendiente = true;
+      if (r.objRefutada) { ac.objPendiente = false; if (r.objInmediata) ac.objRefutada = true; }
+      if (r.ignoroConsulta) ac.escFallas++;
+      if (r.quality === 'good') {
+        if (r.stage === 'saludo' && !stg.saludo) { stg.saludo = true; redir = 0; }
+        if (r.stage === 'secundario' && !stg.secundario) { stg.secundario = true; redir = 0; }
+        if (r.stage === 'cierre' && !stg.cierre) stg.cierre = true;
+      }
+      updateUI();
+      if (r.isRedirect) { redir++; if (r.quality === 'warning') feedback('warning', r.feedback, r.tip); return; }
+      redir = 0;
+      if (r.ignoroConsulta) { feedback('bad', 'El lead hizo una consulta que no respondiste.', 'Respondé primero lo que pregunta el lead.'); return; }
+      if (ac.objPendiente && !r.objRefutada) { feedback('bad', 'Objeción del lead sin refutar.', 'Refutala antes de avanzar.'); return; }
+      if (r.feedback) feedback(r.quality, r.feedback, r.tip);
+    } catch(e) { console.error('Eval parse error:', e); }
+  }).catch(function(e) { console.error('Eval error:', e); });
 }
 
 // ─── PISTA ────────────────────────────────────────────────────────────────────
-function getHint() {
-  if (!stages.saludo)       { addFeedback('warning', '💡 Pista', 'Saludá, presentate con tu nombre y contale que llamás de Utel Universidad.'); return; }
-  if (!stages.secundario)   { addFeedback('warning', '💡 Pista', !lead.hasSecundario && messages.length > 6 ? 'Este lead no tiene secundario. Informale que es requisito y cerrá la conversación cordialmente.' : 'Preguntale si tiene el secundario completo.'); return; }
-  if (acum.objecionPendiente) { addFeedback('warning', '💡 Pista', 'El lead planteó una objeción. Refutala con argumentos: RVOE, apostilla, flexibilidad, acompañamiento.'); return; }
-  if (acum.preguntas < 3)   { addFeedback('warning', '💡 Pista', 'Te faltan ' + (3-acum.preguntas) + ' pregunta(s) de sondeo. Preguntá sobre su trabajo, objetivos o situación.'); return; }
-  if (acum.beneficios < 5)  { addFeedback('warning', '💡 Pista', 'Mencionaste ' + acum.beneficios + '/5 beneficios. Podés sumar: RVOE, apostilla, flexibilidad, acompañamiento, Voxy, empleabilidad, comunidad, Asistencia Universitaria.'); return; }
-  if (!acum.objecionRefutada) { addFeedback('warning', '💡 Pista', 'Todavía no refutaste ninguna objeción. Escuchá cuando el lead dude y respondé de inmediato.'); return; }
-  addFeedback('warning', '💡 Pista', '¡Cumpliste todo! Pedile nombre completo, DNI y forma de pago para concretar la inscripción.');
+function hint() {
+  if (!stg.saludo) { feedback('warning', '💡 Pista', 'Saludá, presentate con tu nombre y contale que llamás de Utel Universidad.'); return; }
+  if (!stg.secundario) { feedback('warning', '💡 Pista', (!lead.hasSecundario && msgs.length > 6) ? 'Este lead no tiene secundario. Informale que es requisito y cerrá la conversación.' : 'Preguntale si tiene el secundario completo.'); return; }
+  if (ac.objPendiente) { feedback('warning', '💡 Pista', 'El lead planteó una objeción. Refutala con argumentos: RVOE, apostilla, flexibilidad, acompañamiento.'); return; }
+  if (ac.preguntas < 3) { feedback('warning', '💡 Pista', 'Te faltan ' + (3 - ac.preguntas) + ' pregunta(s) de sondeo. Preguntá sobre trabajo, objetivos o situación.'); return; }
+  if (ac.beneficios < 5) { feedback('warning', '💡 Pista', 'Mencionaste ' + ac.beneficios + '/5 beneficios. Podés sumar: RVOE, apostilla, flexibilidad, acompañamiento, Voxy, empleabilidad, comunidad, Asistencia Universitaria.'); return; }
+  if (!ac.objRefutada) { feedback('warning', '💡 Pista', 'Todavía no refutaste ninguna objeción. Escuchá cuando el lead dude y respondé de inmediato.'); return; }
+  feedback('warning', '💡 Pista', '¡Cumpliste todo! Pedile nombre, DNI y forma de pago para cerrar la inscripción.');
 }
 
 // ─── FIN SIMULADOR ────────────────────────────────────────────────────────────
-function finSimulador() {
-  if (gameOver) return;
-  gameOver = true;
-  hide('input-area'); hide('fin-bar');
-  addBubble('lead', 'Cortó el teléfono.');
-  addFeedback('bad', '📵 El cliente cortó la llamada.', 'La venta no se concretó. Se genera el informe con el progreso registrado.');
+function finSim() {
+  if (over) return;
+  over = true;
+  hide('inp'); hide('fbar');
+  bubble('lead', 'Cortó el teléfono.');
+  feedback('bad', '📵 El lead cortó la llamada.', 'Se genera el informe con el progreso registrado hasta este momento.');
   showResult('corto');
 }
 
-// ─── RESULTADO FINAL ──────────────────────────────────────────────────────────
-async function showResult(outcome) {
-  gameOver = true;
-  hide('input-area'); hide('fin-bar');
-  hide('chat');
-
-  const s = getStages();
-  const completed = Object.values(s).filter(Boolean).length;
-  const pct = Math.round((completed / 6) * 100);
-
-  const cfg = {
-    inscrito:      { score:pct+'%', label:'🎉 ¡Cerraste la venta! '+lead.name+' se inscribió.', badge:'outcome-inscrito', badgeText:'✅ VENTA CERRADA' },
-    sin_secundario:{ score:'✓',    label:'👏 ¡Bien manejado! Detectaste que '+lead.name+' no tiene secundario.', badge:'outcome-sin-sec', badgeText:'📋 LEAD NO POTABLE — BIEN CERRADO' },
-    no_amable:     { score:pct+'%', label:'😐 '+lead.name+' decidió no inscribirse. Revisá las etapas incompletas.', badge:'outcome-no-amable', badgeText:'🤝 NO AMABLE' },
-    corto:         { score:pct+'%', label:'📵 '+lead.name+' cortó el teléfono.', badge:'outcome-corto', badgeText:'📵 CORTÓ EL TELÉFONO' },
-    insulto:       { score:pct+'%', label:'😬 '+lead.name+' se enojó y cortó.', badge:'outcome-insulto', badgeText:'🚫 INSULTO Y COLGÓ' }
-  }[outcome] || { score:pct+'%', label:'La llamada terminó.', badge:'outcome-corto', badgeText:'📵 FIN' };
-
-  document.getElementById('final-score').textContent = cfg.score;
-  document.getElementById('final-label').textContent = cfg.label;
-  const badge = document.getElementById('outcome-badge');
-  badge.className = 'outcome-tag ' + cfg.badge;
-  badge.textContent = cfg.badgeText;
-
-  const labels = {
-    saludo:    {label:'Saludo y presentación',         detail:''},
-    secundario:{label:'Verificación de secundario',    detail:''},
-    sondeo:    {label:'Sondeo comercial',              detail:'('+Math.min(acum.preguntas,3)+'/3 preguntas)'},
-    beneficios:{label:'Bajada de beneficios de Utel',  detail:'('+Math.min(acum.beneficios,5)+'/5 beneficios)'},
-    objecion:  {label:'Rebate de objeción',            detail: acum.escuchaFallas > 0 ? '('+acum.escuchaFallas+' consulta(s) ignorada(s))' : ''},
-    cierre:    {label:'Cierre y obtención de datos',   detail:''}
+// ─── RESULTADO ────────────────────────────────────────────────────────────────
+function showResult(outcome) {
+  over = true;
+  hide('inp'); hide('fbar'); hide('chat');
+  var s = gStages();
+  var done = Object.values(s).filter(Boolean).length;
+  var pct = Math.round((done / 6) * 100);
+  var cfgs = {
+    inscrito:      {score:pct+'%', label:'🎉 ¡Cerraste la venta! '+lead.name+' se inscribió.', badge:'oi', txt:'✅ VENTA CERRADA'},
+    sin_secundario:{score:'✓',    label:'👏 ¡Bien manejado! Detectaste que '+lead.name+' no tiene secundario.', badge:'os', txt:'📋 LEAD NO POTABLE — BIEN CERRADO'},
+    no_amable:     {score:pct+'%', label:'😐 '+lead.name+' decidió no inscribirse. Revisá las etapas incompletas.', badge:'ona', txt:'🤝 NO AMABLE'},
+    corto:         {score:pct+'%', label:'📵 '+lead.name+' cortó el teléfono.', badge:'oc', txt:'📵 CORTÓ EL TELÉFONO'},
+    insulto:       {score:pct+'%', label:'😬 '+lead.name+' se enojó y cortó.', badge:'oin', txt:'🚫 INSULTO Y COLGÓ'}
   };
-  document.getElementById('final-checklist').innerHTML = Object.keys(s).map(k =>
-    '<div class="check-item"><span style="flex-shrink:0">'+(s[k]?'✅':'❌')+'</span><div><div>'+labels[k].label+'</div>'+(labels[k].detail?'<div class="check-detail">'+labels[k].detail+'</div>':'')+'</div></div>'
-  ).join('');
-
-  document.getElementById('result-panel').style.display = 'flex';
-  await generateAndSave(outcome, pct, s);
+  var cfg = cfgs[outcome] || cfgs.corto;
+  G('fscore').textContent = cfg.score;
+  G('flabel').textContent = cfg.label;
+  G('obadge').className = 'ot ' + cfg.badge;
+  G('obadge').textContent = cfg.txt;
+  var lbls = {
+    saludo:    {l:'Saludo y presentación', d:''},
+    secundario:{l:'Verificación de secundario', d:''},
+    sondeo:    {l:'Sondeo comercial', d:'('+Math.min(ac.preguntas,3)+'/3 preguntas)'},
+    beneficios:{l:'Beneficios de Utel', d:'('+Math.min(ac.beneficios,5)+'/5 beneficios)'},
+    objecion:  {l:'Rebate de objeción', d: ac.escFallas > 0 ? '('+ac.escFallas+' consulta(s) ignorada(s))' : ''},
+    cierre:    {l:'Cierre y datos', d:''}
+  };
+  G('fchecklist').innerHTML = Object.keys(s).map(function(k) {
+    return '<div class="ci"><span style="flex-shrink:0">'+(s[k]?'✅':'❌')+'</span><div><div>'+lbls[k].l+'</div>'+(lbls[k].d?'<div class="cd">'+lbls[k].d+'</div>':'')+'</div></div>';
+  }).join('');
+  show('res');
+  genAndSave(outcome, pct, s, cfg.txt);
 }
 
-async function generateAndSave(outcome, pct, s) {
-  document.getElementById('conclusion-box').style.display = 'block';
-  document.getElementById('conclusion-text').textContent  = 'Generando análisis...';
-  const ms = document.getElementById('mail-status');
-  ms.className = 'mail-status sending'; ms.textContent = '⏳ Registrando resultados...';
+function genAndSave(outcome, pct, s, resultLabel) {
+  G('cbox').style.display = 'block';
+  G('ctext').textContent = 'Generando análisis...';
+  var ms = G('mstatus'); ms.className = 'ms sending'; ms.textContent = '⏳ Registrando resultados...';
+  var conv = msgs.map(function(m) { return (m.role === 'user' ? asesorNombre : lead.name) + ': ' + m.content; }).join('\n');
+  var cp = 'Analizá el desempeño de ' + asesorNombre + ' en un simulador de ventas de Utel Universidad.\nLead: ' + lead.name + ' — ' + lead.career + '. Resultado: ' + outcome + ' (' + pct + '%).\nEtapas: Saludo ' + (s.saludo?'✅':'❌') + ', Secundario ' + (s.secundario?'✅':'❌') + ', Sondeo ' + ac.preguntas + '/3 ' + (s.sondeo?'✅':'❌') + ', Beneficios ' + ac.beneficios + '/5 ' + (s.beneficios?'✅':'❌') + ', Objeción ' + (s.objecion?'✅':'❌') + ', Cierre ' + (s.cierre?'✅':'❌') + '. Consultas ignoradas: ' + ac.escFallas + '.\nConversación:\n' + (conv || 'Sin interacción registrada.') + '\nEscribí 3-4 párrafos: qué hizo bien (con ejemplos), qué mejorar (con ejemplos), consejo para la próxima llamada. Tono coach: honesto, constructivo, alentador. Segunda persona (vos). Máx 200 palabras.';
 
-  const convoSummary = messages.map(m => (m.role === 'user' ? asesorNombre : lead.name) + ': ' + m.content).join('
-');
-  const conclusionPrompt = `Analizá el desempeño de ${asesorNombre} en un simulador de ventas de Utel Universidad.
-Lead: ${lead.name} — ${lead.career}. Resultado: ${outcome} (${pct}% de etapas).
-Etapas: Saludo ${s.saludo?'✅':'❌'}, Secundario ${s.secundario?'✅':'❌'}, Sondeo ${acum.preguntas}/3 ${s.sondeo?'✅':'❌'}, Beneficios ${acum.beneficios}/5 ${s.beneficios?'✅':'❌'}, Objeción ${s.objecion?'✅':'❌'}, Cierre ${s.cierre?'✅':'❌'}. Consultas ignoradas: ${acum.escuchaFallas}.
-Conversación:
-${convoSummary}
-Escribí 3-4 párrafos: qué hizo bien (con ejemplos), qué puede mejorar (con ejemplos), y un consejo para la próxima llamada. Tono de coach: honesto, constructivo, alentador. Dirigite en segunda persona (vos). Máximo 200 palabras.`;
+  callAI('Sos un coach de ventas experto. Respondé en español rioplatense, tono constructivo y alentador.', [{role:'user', content:cp}], 600).then(function(conclusion) {
+    G('ctext').textContent = conclusion;
+    saveToSheets(outcome, resultLabel, pct, s, conclusion, ms);
+  }).catch(function() {
+    G('ctext').textContent = 'No se pudo generar el análisis automático.';
+    saveToSheets(outcome, resultLabel, pct, s, '', ms);
+  });
+}
 
-  let conclusion = '';
-  try {
-    conclusion = await callAI('Sos un coach de ventas experto. Respondé en español rioplatense, tono constructivo y alentador.', [{ role:'user', content: conclusionPrompt }], 600);
-    document.getElementById('conclusion-text').textContent = conclusion;
-  } catch(e) {
-    conclusion = 'No se pudo generar el análisis automático.';
-    document.getElementById('conclusion-text').textContent = conclusion;
-  }
-
-  const outcomeLabels = { inscrito:'✅ VENTA CERRADA', sin_secundario:'📋 LEAD NO POTABLE — BIEN CERRADO', no_amable:'🤝 NO AMABLE', corto:'📵 CORTÓ EL TELÉFONO', insulto:'🚫 INSULTO Y COLGÓ' };
-  const payload = {
-    type:'registro', fecha: new Date().toLocaleString('es-AR'),
-    asesor_nombre: asesorNombre, asesor_mail: asesorMail,
-    lead_nombre: lead.name, lead_carrera: lead.career,
-    resultado: outcomeLabels[outcome] || outcome, puntaje: pct+'%',
-    saludo:     s.saludo     ? '✅' : '❌',
+function saveToSheets(outcome, resultLabel, pct, s, conclusion, ms) {
+  var payload = {
+    type: 'registro',
+    fecha: new Date().toLocaleString('es-AR'),
+    asesor_nombre: asesorNombre,
+    asesor_mail: asesorMail,
+    lead_nombre: lead ? lead.name : '—',
+    lead_carrera: lead ? lead.career : '—',
+    resultado: resultLabel || outcome || '—',
+    puntaje: pct + '%',
+    saludo: s.saludo ? '✅' : '❌',
     secundario: s.secundario ? '✅' : '❌',
-    sondeo:     s.sondeo     ? '✅ ('+acum.preguntas+'/3)' : '❌ ('+acum.preguntas+'/3)',
-    beneficios: s.beneficios ? '✅ ('+acum.beneficios+'/5)' : '❌ ('+acum.beneficios+'/5)',
-    objecion:   s.objecion   ? '✅' : '❌',
-    cierre:     s.cierre     ? '✅' : '❌',
-    escucha_fallas: acum.escuchaFallas, conclusion
+    sondeo: s.sondeo ? '✅ (' + ac.preguntas + '/3)' : '❌ (' + ac.preguntas + '/3)',
+    beneficios: s.beneficios ? '✅ (' + ac.beneficios + '/5)' : '❌ (' + ac.beneficios + '/5)',
+    objecion: s.objecion ? '✅' : '❌',
+    cierre: s.cierre ? '✅' : '❌',
+    escucha_fallas: ac.escFallas,
+    conclusion: conclusion || ''
   };
-
-  try {
-    const res = await fetch(PROXY, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    const data = await res.json();
-    if (data.status === 'ok') { ms.className = 'mail-status sent'; ms.textContent = '✅ Resultado registrado en Google Sheets'; }
-    else throw new Error(data.error);
-  } catch(err) {
-    ms.className = 'mail-status'; ms.textContent = '⚠️ No se pudo registrar en Sheets.';
+  fetch(PROXY, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (ms) { ms.className = 'ms sent'; ms.textContent = d.status === 'ok' ? '✅ Resultado registrado en Google Sheets' : '⚠️ Error al registrar: ' + (d.error || ''); }
+  }).catch(function(err) {
     console.error('Sheets error:', err);
-  }
+    if (ms) { ms.className = 'ms'; ms.textContent = '⚠️ No se pudo registrar en Sheets.'; }
+  });
 }
 
-// ─── EVENTOS ─────────────────────────────────────────────────────────────────
-document.getElementById('reg-btn').onclick     = startSession;
-document.getElementById('send-btn').onclick    = sendMessage;
-document.getElementById('hint-btn').onclick    = getHint;
-document.getElementById('fin-sim-btn').onclick = finSimulador;
-document.getElementById('new-game-btn').onclick = initGame;
-document.getElementById('msg-input').addEventListener('keydown', handleKey);
-document.getElementById('reg-nombre').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('reg-mail').focus(); });
-document.getElementById('reg-mail').addEventListener('keydown',  e => { if (e.key==='Enter') startSession(); });
-
+// ─── EVENTOS — asignados directamente ────────────────────────────────────────
+G('rbtn').onclick = startSession;
+G('sbtn').onclick = sendMsg;
+G('hbtn').onclick = hint;
+G('fbtn').onclick = finSim;
+G('ngbtn').onclick = initGame;
+G('txt').onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } };
+G('rnombre').onkeydown = function(e) { if (e.key === 'Enter') G('rmail').focus(); };
+G('rmail').onkeydown = function(e) { if (e.key === 'Enter') startSession(); };
 </script>
 </body>
 </html>
